@@ -1,16 +1,16 @@
 
-import { Stack, Typography,Box } from "@mui/material";
+import { Stack, Typography,Box, Skeleton } from "@mui/material";
 import Image from "next/legacy/image";
 import React from "react";
 import client from "./../../config/contentful";
 import { documentToReactComponents } from '@contentful/rich-text-react-renderer';
+import { useRouter } from 'next/router';
 
 export const getStaticPaths = async () => {
   const response = await client.getEntries({
     content_type: "trips",
   });
 
-  // {params: {slug:val}}
 
   const paths = response.items.map((trip) => {
     return {
@@ -24,7 +24,7 @@ export const getStaticPaths = async () => {
   console.log(paths);
   return {
     paths,
-    fallback: false,
+    fallback: true,
   };
 };
 
@@ -46,7 +46,24 @@ export const getStaticProps = async ({ params }) => {
 
 const TripDetail = ({ trip }) => {
   console.log(trip);
+
+  const router = useRouter()
+
+  if (router.isFallback) {
+    console.log('showing fallback page')
+    return <Stack alignItems='center' spacing={2} mb={10}>
+      <Skeleton width='75%' height="400px" variant="rectangular" animation="wave"></Skeleton>
+      <Stack width='75%' >
+        <Typography variant="h1" width='75%'><Skeleton /></Typography>
+        <Typography variant="h3" width='35%'><Skeleton /></Typography>
+        <Typography variant="h4" width='55%'><Skeleton /></Typography>
+      </Stack>
+    </Stack>
+  }
+
   const { title, brief, contentimage, attractions, description } = trip.fields;
+
+  
   return (
     <Stack spacing={5} mb={10}>
       <Image
@@ -56,7 +73,7 @@ const TripDetail = ({ trip }) => {
         height={600}
         layout='responsive'
       />
-       <Stack spacing={2}>
+      <Stack spacing={2}>
         <Typography variant="h4" fontWeight='bold'>{title}</Typography>
         <Typography variant="h6" color='#7c7f7c'>{brief}</Typography>
       </Stack>
